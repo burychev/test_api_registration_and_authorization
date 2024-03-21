@@ -1,11 +1,6 @@
 using System.Text.Json.Serialization;
-using System.Security.Cryptography;
 using System.Security.Claims;
-using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text;
-using BCrypt;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.RegularExpressions;
@@ -25,11 +20,11 @@ string validation(string emailtext)
     bool isvalid_v = regex_v.IsMatch(emailtext);
     if (isvalid_v)
     {
-        return "email §á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ";
+        return "email in correct format";
     }
     else
     {
-        return "email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ";
+        return "email is not in the correct format";
     }
     
 }
@@ -44,10 +39,10 @@ usersApi.MapPost("/register", (User user) =>
 {
 
     var existedUser = users.FirstOrDefault(u => u.email == user.email);
-    if (existedUser != null) return Results.BadRequest("§±§à§Ý§î§Ù§à§Ó§Ñ§ä§Ö§Ý§î §ß§Ö §ß§Ñ§Û§Õ§Ö§ß");
-    if (validation(user.email) == "email §á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ")
+    if (existedUser != null) return Results.BadRequest("user is not found");
+    if (validation(user.email) == "email in correct format")
     {
-        if (user.password.Length <= 8) return Results.BadRequest("§±§Ñ§â§à§Ý§î §Õ§à§Ý§Ø§Ö§ß §Ò§í§ä§î §Ò§à§Ý§î§ê§Ö 8 §ã§Ú§Þ§Ó§à§Ý§à§Ó");
+        if (user.password.Length <= 8) return Results.BadRequest("password must be more than 8 characters");
         else {
             string hashPassword = BCrypt.Net.BCrypt.EnhancedHashPassword(user.password, 5);
             User newUser = new(users.Count + 1, user.email, hashPassword);
@@ -57,20 +52,17 @@ usersApi.MapPost("/register", (User user) =>
     }
     else
     {
-        return Results.BadRequest("email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ(");
+        return Results.BadRequest("email is not in the correct format");
     }
     
-    //Console.WriteLine(HashPassword);
-    //GetHash(newUser.password);
-    //Console.WriteLine((newUser.password));
     
 });
 
 usersApi.MapPost("/login", (User user) =>
 {
     var existedUser = users.FirstOrDefault(u => u.email == user.email);
-    if (validation(user.email) == "email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ") return Results.BadRequest("email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ(");
-    if (existedUser == null) return Results.BadRequest("§¯§Ö§ä §ä§Ñ§Ü§à§Ô§à §á§à§Ý§î§Ù§à§Ó§Ñ§ä§Ö§Ý§ñ");
+    if (validation(user.email) == "email is not in the correct format") return Results.BadRequest("email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ(");
+    if (existedUser == null) return Results.BadRequest("user is not found");
        if (BCrypt.Net.BCrypt.EnhancedVerify(user.password, existedUser.password) == true)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -91,7 +83,7 @@ usersApi.MapPost("/login", (User user) =>
         }
         else
         {
-            return Results.BadRequest("§¯§Ö§Ó§Ö§â§ß§í§Û §á§Ñ§â§à§Ý§î");
+            return Results.BadRequest("incorrect password");
         }
     
 });
@@ -100,42 +92,10 @@ usersApi.MapPost("/login", (User user) =>
 usersApi.MapDelete("/{id}", (int id) =>
 {
     var existedUser = users.FirstOrDefault(u => u.id == id);
-    if (existedUser == null) return Results.BadRequest("§¯§Ö§ä §ä§Ñ§Ü§à§Ô§à §á§à§Ý§î§Ù§à§Ó§Ñ§ä§Ö§Ý§ñ");
+    if (existedUser == null) return Results.BadRequest("user is not found");
     users.Remove(existedUser);
-    return Results.Ok("§¤§à§ä§à§Ó§à");
+    return Results.Ok("Complete!");
 });
-
-
-//usersApi.MapDelete("/delete", (User user) =>
-//{
-//    int userToDelete = 5;
-//    var existedUser = users.FirstOrDefault(u => u.id == user.id);
-//    if (existedUser == null) return Results.BadRequest("§¯§Ö§ä §ä§Ñ§Ü§à§Ô§à §á§à§Ý§î§Ù§à§Ó§Ñ§ä§Ö§Ý§ñ");
-//    users.Remove(userToDelete);
-
-
-//    return Results.Created();
-//});
-
-
-//usersApi.MapDelete("/delete", (User user) =>
-//{
-
-//    var existedUser = users.FirstOrDefault(u => u.email == user.email);
-//    if (existedUser != null) return Results.BadRequest("§ß§Ö§ä §ä§Ñ§Ü§à§Ô§à §á§à§Ý§î§Ù§à§Ó§Ñ§ä§Ö§Ý§ñ");
-//    User newUser = new(1, user.email, user.password);
-
-//    users.Add(newUser);
-//    return Results.Created();
-//});
-
-// usersApi.MapDelete("/{id}", (User user) =>
-// {
-//    var existedUser = users.FirstOrDefault(u => u.email == user.email);
-//    if (existedUser == null) return Results.BadRequest("§´§í §ß§Ñ§ã §ß§Ñ§Ö§Ò§Ñ§Ý");
-
-// });
-
 
 
 app.Run();
