@@ -61,7 +61,7 @@ usersApi.MapPost("/register", (User user) =>
 usersApi.MapPost("/login", (User user) =>
 {
     var existedUser = users.FirstOrDefault(u => u.email == user.email);
-    if (validation(user.email) == "email is not in the correct format") return Results.BadRequest("email §ß§Ö§á§â§Ñ§Ó§Ú§Ý§î§ß§à§Ô§à §æ§à§â§Þ§Ñ§ä§Ñ(");
+    if (validation(user.email) == "email is not in the correct format") return Results.BadRequest("email is not in the correct format");
     if (existedUser == null) return Results.BadRequest("user is not found");
        if (BCrypt.Net.BCrypt.EnhancedVerify(user.password, existedUser.password) == true)
         {
@@ -94,7 +94,7 @@ usersApi.MapDelete("/{id}", (int id) =>
     var existedUser = users.FirstOrDefault(u => u.id == id);
     if (existedUser == null) return Results.BadRequest("user is not found");
     users.Remove(existedUser);
-    return Results.Ok("Complete!");
+    return Results.Ok("complete!");
 });
 
 
