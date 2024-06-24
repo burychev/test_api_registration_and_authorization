@@ -1,9 +1,8 @@
-using System.Text.Json.Serialization;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text.RegularExpressions;
+
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -12,23 +11,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
-
-
-string validation(string emailtext)
-{
-    Regex regex_v = new Regex(@"[^@\s]+@[^@\s]+\.[^@\s]+$");
-    bool isvalid_v = regex_v.IsMatch(emailtext);
-    if (isvalid_v)
-    {
-        return "email in correct format";
-    }
-    else
-    {
-        return "email is not in the correct format";
-    }
-    
-}
-
 
 var users = new List<User> { };
 
@@ -40,7 +22,7 @@ usersApi.MapPost("/register", (User user) =>
 
     var existedUser = users.FirstOrDefault(u => u.email == user.email);
     if (existedUser != null) return Results.BadRequest("user is not found");
-    if (validation(user.email) == "email in correct format")
+    if (Validation.ValidateEmail(user.email) == "email in correct format")
     {
         if (user.password.Length <= 8) return Results.BadRequest("password must be more than 8 characters");
         else {
@@ -61,7 +43,7 @@ usersApi.MapPost("/register", (User user) =>
 usersApi.MapPost("/login", (User user) =>
 {
     var existedUser = users.FirstOrDefault(u => u.email == user.email);
-    if (validation(user.email) == "email is not in the correct format") return Results.BadRequest("email is not in the correct format");
+    if (Validation.ValidateEmail(user.email) == "email is not in the correct format") return Results.BadRequest("email is not in the correct format");
     if (existedUser == null) return Results.BadRequest("user is not found");
        if (BCrypt.Net.BCrypt.EnhancedVerify(user.password, existedUser.password) == true)
         {
@@ -101,11 +83,7 @@ usersApi.MapDelete("/{id}", (int id) =>
 app.Run();
 
 
-public record User(int id, string email, string password);
 
 
-[JsonSerializable(typeof(List<User>))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
-{
 
-}
+
